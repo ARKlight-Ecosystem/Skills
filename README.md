@@ -1,4 +1,4 @@
-# arklight-sites
+# ARKlight Skill Collections
 
 An [Agent Skill](https://www.anthropic.com/news/skills) that teaches
 Claude (or any SKILL.md-compatible agent) how to actually build with
@@ -53,11 +53,11 @@ to be exercised and refined.
 ### Claude Code
 
 ```sh
-git clone https://github.com/ARKlight-Exosystem/arklight-sites ~/.claude/skills/arklight-sites
+git clone https://github.com/ARKlight-Exosystem/arklight-skill-collections ~/.claude/skills/arklight-skill-collections
 ```
 
 Or per-project: `.claude/skills/arklight-sites`. Also works with the
-cross-agent installer: `npx skills add https://github.com/ARKlight-Ecosystem/arklight-sites`.
+cross-agent installer: `npx skills add https://github.com/ARKlight-Ecosystem/arklight-skill-collections`.
 
 ### Claude.ai (claude.ai / the Claude apps)
 
@@ -70,13 +70,16 @@ enabled.
 Same pattern, different folder:
 
 ```sh
-git clone https://github.com/ARKlight-Ecosystem/arklight-sites ~/.cursor/skills/arklight-sites
-git clone https://github.com/ARKlight-Ecosystem/arklight-sites ~/.codex/skills/arklight-sites
-git clone https://github.com/ARKlight-Ecosystem/arklight-sites .windsurf/skills/arklight-sites
+git clone https://github.com/ARKlight-Ecosystem/arklight-skill-collectioms ~/.cursor/skills/arklight-skill-collections
+git clone https://github.com/ARKlight-Ecosystem/arklight-skill-collections ~/.codex/skills/arklight-skill-collections
+git clone https://github.com/ARKlight-Ecosystem/arklight-skill-collections
+.windsurf/skills/arklight-skill-collections
 ```
 
 Restart the agent (or start a new session) so it picks up the skill.
 
 ## License
+
+The Skill and the repo itself is MIT Licence.
 
 Plz, Check the [license file](https://github.com/ARKlight-Ecosystem/Skills/blob/main/License) For more information.
