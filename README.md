@@ -79,11 +79,4 @@ Restart the agent (or start a new session) so it picks up the skill.
 
 ## License
 
-The skill content here (`SKILL.md`, `README.md`,
-`references/component-vocabulary.md`) has no license restrictions of
-its own. `references/field-notes-site.py` is a single file vendored
-from `ARKlight-Test-Collections/Field-Notes` for reference — check
-that repository for its own license terms before redistributing that
-file specifically. ARKlight itself is GPLv3 plus additional terms;
-read `LICENSE` in `ARKlight-Ecosystem/ARKlight` before building
-anything you intend to distribute with it.
+Plz, Check the (license file)[.../license]
