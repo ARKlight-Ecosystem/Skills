@@ -57,7 +57,7 @@ git clone https://github.com/ARKlight-Exosystem/arklight-sites ~/.claude/skills/
 ```
 
 Or per-project: `.claude/skills/arklight-sites`. Also works with the
-cross-agent installer: `npx skills add https://github.com/<your-username>/arklight-sites`.
+cross-agent installer: `npx skills add https://github.com/ARKlight-Ecosystem/arklight-sites`.
 
 ### Claude.ai (claude.ai / the Claude apps)
 
