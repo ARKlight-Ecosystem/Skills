@@ -53,7 +53,7 @@ to be exercised and refined.
 ### Claude Code
 
 ```sh
-git clone https://github.com/<your-username>/arklight-sites ~/.claude/skills/arklight-sites
+git clone https://github.com/ARKlight-Exosystem/arklight-sites ~/.claude/skills/arklight-sites
 ```
 
 Or per-project: `.claude/skills/arklight-sites`. Also works with the
@@ -70,13 +70,13 @@ enabled.
 Same pattern, different folder:
 
 ```sh
-git clone https://github.com/<your-username>/arklight-sites ~/.cursor/skills/arklight-sites
-git clone https://github.com/<your-username>/arklight-sites ~/.codex/skills/arklight-sites
-git clone https://github.com/<your-username>/arklight-sites .windsurf/skills/arklight-sites
+git clone https://github.com/ARKlight-Ecosystem/arklight-sites ~/.cursor/skills/arklight-sites
+git clone https://github.com/ARKlight-Ecosystem/arklight-sites ~/.codex/skills/arklight-sites
+git clone https://github.com/ARKlight-Ecosystem/arklight-sites .windsurf/skills/arklight-sites
 ```
 
 Restart the agent (or start a new session) so it picks up the skill.
 
 ## License
 
-Plz, Check the (license file)[.../license]
+Plz, Check the [license file](https://github.com/ARKlight-Ecosystem/Skills/blob/main/License) For more information.
