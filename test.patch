@@ -1,0 +1,542 @@
+diff --git a/References/Field-notes-site.py b/References/Field-notes-site.py
+index 8e36d7a..da8fb41 100644
+--- a/References/Field-notes-site.py
++++ b/References/Field-notes-site.py
+@@ -1,6 +1,8 @@
+-"""This is a reference file from https://github.com/ARKlight-Test-Collections/Field-Notes
+-Used as one of the reference at the time of writing this, October 2026. Use the search cli
+-if appropriate for reference ARKlight itself produces"""
++"""Reference file from github.com/ARKlight-Test-Collections/Field-Notes
++(entry file, site.py). Vendored verbatim for the real multi-file
++route-registration pattern (SKILL.md gotcha #3) and site.style(...)/
++site.style_selector(...) usage at real-project scale. Use `arklight
++search <name>` for anything this file's own version might lag."""
+ 
+ # include <stdlib.ARKlight>
+ 
+diff --git a/References/alpha-vs-main-and-data-viz.md b/References/alpha-vs-main-and-data-viz.md
+new file mode 100644
+index 0000000..544b9eb
+--- /dev/null
++++ b/References/alpha-vs-main-and-data-viz.md
+@@ -0,0 +1,131 @@
++# The `alpha` branch, and building charts/dashboards in ARKlight
++
++Both topics come from the same real project,
++`Rae-ARK/Data_Viz_With_ARKlight_Alpha_Compiler` — an 11-page
++"ARKlight vs. traditional frontend frameworks" comparison site, built
++*in* ARKlight, shipped as a sealed `.ark` bundle. Cloned and read
++directly, not summarized from its own claims alone.
++
++## `alpha` moves faster than `main` — don't trust a stale feature table
++
++ARKlight develops on an `alpha` branch that lands features before
++`main` picks them up, sometimes much later. The project above tracked
++this live across several re-checks of its own compatibility table, and
++every feature it once called "alpha-only" (`Site.style`, `Page(...)`
++head metadata, `arklight search`/`--help`) **eventually shipped on
++`main` too** — except one: `component(...)`/`Prop`/`ComponentState`
++(the "user-defined, reusable components" milestone), which **did**
++reach `main` by the time this skill's own v0.70.0 pin was checked (see
++`SKILL.md`'s "Reusable components with their own local state" bullet).
++
++The takeaway isn't any specific version number — those are already
++stale by the time you read this — it's the **method**: never trust a
++remembered "X is alpha-only" claim without checking the *installed*
++version's own source. The project's own
++`services/compatibility.py` does exactly this at import time: it
++inspects whatever ARKlight is actually installed for the specific
++names a build needs (not `arklight.__version__`, which doesn't by
++itself tell you which features shipped) and fails fast with a clear
++message — `"This site (site.py) requires ARKlight's 'alpha'
++branch..."` plus the exact fix — instead of a raw `AttributeError`
++partway through a build. That pattern (a feature-presence guard, not a
++version-number guard) is worth reusing in any ARKlight project that
++depends on something not yet confirmed to be on every target branch.
++
++To build against `alpha` specifically:
++
++```bash
++git clone --branch alpha https://github.com/ARKlight-Ecosystem/ARKlight.git
++cd ARKlight
++pip install -e .   # same two-gate license flow as main, see SKILL.md Getting started
++```
++
++A plain `pip install arklight` from PyPI is always the `main` line —
++if a site needs an alpha-only feature, PyPI alone won't build it;
++clone alpha and install editable instead.
++
++One real, still-useful gotcha from this project's build, independent
++of either branch's version number: **a module-level import can behave
++differently from the same import written inside a page function**,
++because ARKlight's compiler runs a site's top-level code and its page
++functions in different pipeline stages. If a value computed from an
++import looks right at module scope but wrong (or missing) inside a
++`@site.page(...)` function, that staging split — not a typo — is the
++first thing to check.
++
++## Data visualization and dashboards: the actual pattern
++
++ARKlight has **no live charting library and never will** — accepting
++arbitrary rendering JS is a permanent non-goal of the project, the
++same way `css-media-queries` is a deliberate tradeoff rather than a
++gap (see `SKILL.md`'s experimental-APIs table). A request for "a chart"
++or "a dashboard" has exactly two real building blocks, both already
++in ARKlight's closed vocabulary:
++
++1. **Pre-rendered images for actual charts.** Generate the chart
++   offline with a real plotting library (matplotlib, in the reference
++   project) in a separate script, drop the PNG into `assets/`, and
++   embed it with `Picture`/`Image` like any other image. ARKlight never
++   touches the plotting library directly — it only ever sees the
++   finished image file. This is a genuine two-step process (chart
++   generation, then a normal ARKlight build), not a shortcut:
++
++   ```python
++   # generate_assets.py -- run once, separately, before `arklight build`
++   import matplotlib.pyplot as plt
++   from data import BUNDLE_SIZES
++
++   fig, ax = plt.subplots()
++   ax.bar(BUNDLE_SIZES.keys(), BUNDLE_SIZES.values())
++   fig.savefig("assets/bundle-size-bar.png", dpi=200, bbox_inches="tight")
++   ```
++
++   ```python
++   # site.py -- include <stdlib.ARKlight> preamble omitted here for brevity
++   Picture(
++       PictureSource(srcset="assets/bundle-size-bar.png"),
++       Image(src="assets/bundle-size-bar.png", alt="Bundle size by framework"),
++   )
++   ```
++
++2. **`Meter`/`Progress` for native KPI numbers.** For a single
++   value-against-a-range reading (a percentage, a score, "12 of 50"),
++   ARKlight already has zero-JS schema support — no image step needed:
++
++   ```python
++   Container(
++       Text("Adoption", class_name="muted"),
++       Heading("64%", level=2),
++       Meter("adoption", value=64, min=0, max=100),
++       class_name="kpi-card",
++   )
++   ```
++
++   A row of these (one `Container`+`Meter` pair per metric) is the
++   idiomatic "KPI strip" at the top of a dashboard page — see
++   `components/meters.py` in the reference project for the exact
++   reusable-function shape (a plain Python helper, not a `@component`,
++   though either works).
++
++A build that mixes both — `Meter` strips for live-feeling numbers,
++matplotlib PNGs for anything that needs an actual plotted shape (bars,
++pies, lines) — covers the overwhelming majority of "data visualization
++in ARKlight" requests. If a request specifically needs *live*,
++interactive charting (hover tooltips, client-side filtering of chart
++data), say plainly that ARKlight doesn't support that and the nearest
++honest alternative is a static image regenerated at build time, not a
++`script-extension` workaround — a hand-rolled canvas charting library
++inside unchecked JS is exactly the kind of "temporary-looking but
++actually structural" gap `SKILL.md`'s experimental-APIs section warns
++against reaching for.
++
++### `component(state={...})`, if targeting `alpha` and `main` predates it
++
++`main` v0.70.0 already has `component(..., state={...})` (see
++`SKILL.md`). If working against an older `main` that doesn't, this was
++an `alpha`-only feature for a while — the reference project's
++`/playground` page is the real worked example (two independent
++`Counter()` instances, each with its own `"count"` value, built with
++zero manual state-key plumbing). Full source in that project's
++`pages/playground.py`, the same `@component(props={...}, state={...})`
++shape documented in `References/cli-and-examples.md` here.
+diff --git a/References/cli-and-examples.md b/References/cli-and-examples.md
+index aca8f44..3c10c05 100644
+--- a/References/cli-and-examples.md
++++ b/References/cli-and-examples.md
+@@ -266,3 +266,123 @@ def home():
+         title="To-do",
+     )
+ ```
++
++## Worked example: a component with its own instance-scoped state
++
++Verified against a real multi-instance build
++(`Rae-ARK/Data_Viz_With_ARKlight_Alpha_Compiler`, `pages/playground.py`)
++— two `Counter()` calls on one page, each tracking its own `"count"`
++independently, with no manually-threaded state key:
++
++```python
++# include <stdlib.ARKlight>
++
++site = Site()
++
++@component(
++    props={"label": Prop(default="Live counter"), "start": Prop(default=0)},
++    state={"count": 0, "milestone": 5},
++)
++def Counter(label="Live counter", start=0):
++    return Container(
++        Text(label, class_name="muted"),
++        Heading(Bind("count"), level=2),
++        Button("+", on_click=Action.increment("count")),
++        Button("Reset", on_click=Action.reset("count")),
++        Show(
++            Predicate.gte("count", "milestone"),
++            Text("Milestone reached!", class_name="muted"),
++        ),
++    )
++
++@site.page("/")
++def home():
++    return Page(
++        Heading("Two independent counters"),
++        Counter(label="First"),
++        Counter(label="Second"),    # its own "count" -- clicking this never touches the first
++        title="Playground",
++    )
++```
++
++`props=` are checked at expansion time (unknown/missing props fail the
++build with a clear message, not a Python `TypeError`); `state=` gives
++each call site its own copy, referenced the same way page-level
++`State(...)` is — `Bind(...)`, `on_click=Action.*(...)`,
++`bind_class=Bind.when(...)`, `bind_value=Bind.model(...)`, and
++`Show(Predicate.*(...))` all work against it directly.
++
++## Worked example: registering a real `script-extension` (the Sketchboard shape)
++
++Minimal real shape, from `ARKlight-Test-Collections/Sketchboard`
++(whose actual extension runs to 1,300+ lines of canvas/pointer-gesture
++JS — this is the registration skeleton it uses, not the full file):
++
++```python
++# include <stdlib.ARKlight>
++
++from arklight.backend.script_extension import ScriptExtension
++
++class SketchboardRuntime(ScriptExtension):
++    script = r"""<script>
++(function () {
++    "use strict";
++    function start() {
++        var host = document.getElementById("drawing-host");
++        if (!host || host.dataset.ready) return;
++        host.dataset.ready = "true";
++        // ... canvas setup, pointer event wiring, undo history, etc.
++    }
++    document.addEventListener("DOMContentLoaded", start);
++})();
++</script>"""
++
++site = Site()
++site.register_script_extension(SketchboardRuntime)
++
++@site.page("/")
++def home():
++    return Page(Container(id="drawing-host"), title="Sketchboard")
++```
++
++A `ScriptExtension` subclass's `script` attribute is a literal
++`<script>...</script>` string — no `<template>`/`<style>` sections,
++unlike a Svelte SFC proper. ARKlight doesn't check the JS inside it
++for correctness (no `eval`/`new Function` either, it's just emitted
++verbatim) — this is the registered escape hatch of last resort, not a
++first choice; see `SKILL.md`'s experimental-APIs section before
++reaching for it.
++
++## `arklight.config.py`: project-level overrides
++
++Optional, and every site works fine without one. Must be named exactly
++`arklight.config.py` and sit next to the entry file — not searched for
++in parent directories; an unrecognized section/key prints a
++"did you mean" warning rather than being silently ignored or rejected
++outright. Confirmed real shape (from a real project's checked-in,
++all-defaults-commented-out file):
++
++```python
++# include <stdlib.ARKlight>
++
++CONFIG = {
++    # Only read by `arklight live-streaming --subscribe`.
++    # "live_streaming": {"host": "127.0.0.1", "port": 8347, "poll_interval": 0.5},
++
++    # Force the Content-Security-Policy on/off for every build from this
++    # project, regardless of any individual Site(strict_csp=...).
++    # None (the default) means "no override".
++    # "csp": {"strict_csp": None},
++
++    # Default build narration when no --verbose/--narrate flag is passed:
++    # "plain", "verbose", or "narrate".
++    # "rei": {"default_mode": "plain"},
++
++    # Silence experimental-API warnings once you've made peace with one.
++    # "experimental": {"heavy_reliance_nudge": True, "devtools_console_reminder": True},
++
++    # The narrow, genuinely-legitimate escape from the build halting on an
++    # unresolved link/asset -- see SKILL.md's debugging checklist.
++    # "overdrive": True,
++}
++```
+diff --git a/References/component-vocabulary.md b/References/component-vocabulary.md
+index 80ceece..4fcd90a 100644
+--- a/References/component-vocabulary.md
++++ b/References/component-vocabulary.md
+@@ -99,7 +99,7 @@ attribute rather than silently dropped.
+ | `Predicate` | class, closed set of conditions | e.g. `Predicate.truthy(name)` -- used as `Show(...)`'s `predicate` |
+ | `PlatformAPI` | class, v0.065+ | Closed vocabulary of platform capabilities (`notify`, `clipboard_write`, `db`, ...) |
+ | `Provider` | class, EXPERIMENTAL | External-service *declaration* (`auth`/`read`/`write`/`subscribe` + `custom:`), not a general HTTP client -- see SKILL.md's experimental-APIs table |
+-| `component(...)` | decorator | Register a render function as a reusable named component. Calls take **keyword props only** |
++| `component(...)` | decorator | Register a render function as a reusable named component (`props={...}`, `default_style={...}`). Calls take **keyword props only**. `state={local_name: initial}` gives it **instance-scoped** reactive state (independent per call site), referenced exactly like page-level `State(...)` -- `Bind`, `on_click=Action.*`, `bind_class=Bind.when(...)`, `bind_value=Bind.model(...)`, `Show(Predicate.*(...))`. Worked example: `References/cli-and-examples.md` |
+ | `Site(...)` | class | The application object. `name=`, `max_width=`, `bg=`, `font_family=`, `button_text=`, `lang=`, `stack_space=`, `cluster_space=`, `sidebar_space=`, `sidebar_width=`, `switcher_space=`, `switcher_threshold=`, `grid_min=`, `grid_space=`, `center_gutter=`, `reel_space=`, `app_shell=`, `strict_csp=`, `trusted_script_origins=`, `provider=`. Also owns `site.style(name, rules)` (one flat `.name {}` class) and `site.style_selector(selector, rules, allow_redefine=False)` (arbitrary selectors: combinators, grouped selectors, bare tags, attribute selectors, pseudo-classes/elements including `:hover` -- the only way to reach those) |
+ 
+ All of `Action.*`/`Derive.*`/`Predicate.*` are **closed, described
+diff --git a/SKILL.md b/SKILL.md
+index f422a44..509a284 100644
+--- a/SKILL.md
++++ b/SKILL.md
+@@ -1,19 +1,19 @@
+ ---
+ name: arklight-skill-collections
+-description: Build, fix, extend, or debug ARKlight sites (a Python-first static-site compiler, `pip install arklight`, CLI command `arklight`, pinned here to main v0.70.0). Use this whenever the user mentions ARKlight, runs `arklight build`/`arklight new`/`arklight pack`/`arklight deploy`, shares a `site.py` with `Page(...)`/`Site()`/`@site.page(...)`, or asks for a static site, landing page, portfolio, documentation site, or small interactive widget "written in Python" that compiles to plain dependency-free HTML/CSS/JS with no client-side Python runtime. ARKlight's authoring syntax looks like ordinary Python but is statically parsed, not executed — several things that work in normal Python (dynamic route registration, routes declared outside the entry file, bare imports without the preamble) fail silently here. Consult this skill before writing or debugging any ARKlight site rather than guessing from the syntax alone — the gotchas and error messages below are not discoverable from the syntax or the error text alone.
++description: Build, fix, extend, or debug ARKlight sites (a Python-first static-site compiler, `pip install arklight`, CLI command `arklight`, pinned here to main v0.70.0). Use this whenever the user mentions ARKlight, runs `arklight build`/`arklight new`/`arklight pack`/`arklight deploy`, shares a `site.py` with `Page(...)`/`Site()`/`@site.page(...)`, or asks for a static site, landing page, portfolio, documentation site, dashboard, or small interactive widget "written in Python" that compiles to plain dependency-free HTML/CSS/JS with no client-side Python runtime. ARKlight's authoring syntax looks like ordinary Python but is statically parsed, not executed — several things that work in normal Python (dynamic route registration, routes declared outside the entry file, bare imports without the preamble) fail silently here. Consult this skill before writing or debugging any ARKlight site rather than guessing from the syntax alone — the gotchas and error messages below are not discoverable from the syntax or the error text alone.
+ ---
+ 
+ # ARKlight Sites
+ 
+ Pinned to **ARKlight main, v0.70.0** (`github.com/ARKlight-Ecosystem/ARKlight`,
+-commit `1f536e8`, PyPI `arklight==0.70.0`). Everything in this skill was
+-verified hands-on against that checkout — real builds run, real errors
+-reproduced, not copied from docs on faith. Android/Desktop packaging
+-backends are **not part of `main`** at this version — they exist only
+-on the `alpha` branch. If the user is specifically working from alpha
+-(`arklight android`, `arklight desktop`), say so explicitly and flag
+-that behavior may differ from what's documented here. See "Version
+-drift" at the end if the installed version differs.
++commit `1f536e8`, PyPI `arklight==0.70.0`). Everything here was verified
++hands-on against that checkout and against real third-party ARKlight
++projects — real builds run, real errors reproduced, not copied from
++docs on faith. Android/Desktop packaging and a few newer APIs exist
++only on the **`alpha`** branch, which runs ahead of `main` — see
++`References/alpha-vs-main-and-data-viz.md` if the user's project
++needs alpha specifically. See "Version drift" at the end if the
++installed version differs.
+ 
+ ARKlight compiles a restricted, Python-flavored authoring syntax into
+ plain static HTML/CSS/JS. The browser never runs Python, and there's
+@@ -27,41 +27,43 @@ every gotcha below:
+ > (Confirmed directly in `arklight/parser/discover.py`: `ast.parse` on
+ > the entry file's source only, before any user code runs.)
+ 
+-## Setup
+-
+-Check whether `arklight` is already on `PATH` (`arklight --version`)
+-before installing anything. If not: `pip install arklight`. Requires
+-Python >= 3.10.
+-
+-**Two separate license gates, and they need two separate answers:**
+-
+-- **Build-time** (installing from a git checkout): `pip install -e .`
+-  stops with a notice unless you pass
+-  `--config-settings=yes-i-agree-to-arklight-license=1` or set
+-  `ARKLIGHT_ACCEPT_LICENSE=1` in the environment.
+-- **Runtime** (the first `arklight <command>` invocation on a
+-  machine): prompts interactively for a typed `agree`, or honors the
+-  same `ARKLIGHT_ACCEPT_LICENSE=1` for non-interactive/CI/scripted use
+-  (acceptance is then cached in `~/.arklight/license-accepted`). If
+-  stdin isn't a TTY and the env var isn't set, the command refuses to
+-  run rather than hanging on a prompt nothing can answer — this is
+-  what you'll hit by default in an automated shell.
+-- A plain `pip install arklight` from PyPI (prebuilt wheel) skips the
+-  build-time check entirely but still hits the runtime one.
+-- Read `LICENSE` (GPLv3 + additional attribution terms) before setting
+-  the env var in anything meant to be distributed — the additional
+-  terms require an "ARKlight-based"/"Powered by ARKlight" attribution
+-  on conveyed copies of the compiler itself and its embedded runtime
+-  file, but explicitly do **not** extend to a user's own site source
+-  or compiled output beyond that one runtime file.
+-
+-For scripted/automated use (including this session), just set the
+-env var on every invocation:
++## Getting started
+ 
+ ```bash
+-ARKLIGHT_ACCEPT_LICENSE=1 arklight build site.py
++arklight --version                              # already installed?
++pip install arklight                            # if not (needs Python >= 3.10)
++ARKLIGHT_ACCEPT_LICENSE=1 arklight build site.py -o ARK --no-open   # build
++ARKLIGHT_ACCEPT_LICENSE=1 arklight pack ARK -o mysite.ark           # optional: single-file bundle
++arklight search Picture                         # look up a component's exact prop contract
+ ```
+ 
++That sequence — install, build, optionally pack, and `search` for
++anything you're unsure of — covers the large majority of sessions.
++`arklight search <name>` is the single highest-leverage command here:
++it prints the compiler's own live schema for any component, behavior,
++`Action.*`, `Derive.*`, `Predicate.*`, or `PlatformAPI.*` entry, with
++typo-tolerant "did you mean" suggestions on a miss — prefer it over
++recalling a prop name from memory.
++
++**License, in one line:** `arklight` refuses to run non-interactively
++(any scripted/CI/this-session context) without
++`ARKLIGHT_ACCEPT_LICENSE=1` set — set it on every invocation here. A
++git-checkout `pip install -e .` has a second, separate build-time gate
++(`--config-settings=yes-i-agree-to-arklight-license=1`, or the same
++env var). Read `LICENSE` (GPLv3 + attribution terms covering the
++compiler and its embedded runtime file, not a user's own site source
++or output) before setting it in anything meant to be distributed.
++
++**Where the docs live:** a plain `pip install arklight` wheel does
++**not** include the `docs/` folder (only the `arklight*` package is
++shipped) — `arklight search --retrieve-doc` only works from a source
++checkout (`git clone` + `pip install -e .`). From a wheel install, use
++the PyPI project page (`pypi.org/project/arklight/`) for the version
++history, or read `docs/` directly on GitHub
++(`github.com/ARKlight-Ecosystem/ARKlight`). `arklight search <name>`
++itself (the schema lookup, not `--retrieve-doc`) works either way —
++it reads the installed package, not the `docs/` tree.
++
+ ## The mental model, in one example
+ 
+ ```python
+@@ -80,10 +82,6 @@ def home():
+     )
+ ```
+ 
+-```bash
+-ARKLIGHT_ACCEPT_LICENSE=1 arklight build site.py -o ARK --no-open
+-```
+-
+ Every entry file follows this shape: a leading
+ `# include <stdlib.ARKlight>`, `site = Site()`, and one
+ `@site.page("/route")`-decorated function per route returning a
+@@ -201,7 +199,10 @@ declared on this page."
+   `reel_space` — set once at the site level instead of per-instance
+   `style={}` overrides. `.switcher` is the classic "row on wide
+   viewports, stacked column on narrow ones" layout, purely from
+-  container width.
++  container width. `Site(max_width=...)` is a real body-width
++  override at this version — don't hand-roll one via a wrapper `<div>`
++  custom property; a child element can never widen its own parent, so
++  that pattern silently doesn't reach `<body>`.
+ - **Click behaviors, zero hand-written JS**: `on_click="toggle"` /
+   `"scroll-to"` + `behavior_target="#id"` cover
+   accordions/disclosures/smooth-scroll. Validated against this fixed
+@@ -212,7 +213,30 @@ declared on this page."
+   bites). Display a scalar state value with `Bind("name")` directly as
+   a child; `Bind.model(...)` is specifically for two-way input
+   binding; `Repeat`/`RepeatItem` is only for list-valued state.
+-- **`arklight search <Name>`** prints the authoritative, exact prop/arg
++- **Reusable components with their own local state**: `@component(props={...},
++  default_style={...}, state={...})` registers a render function as a
++  named component (`NavBar(active="home")`, checked against `props=`
++  at expansion time, keyword props only). `state={"open": False}`
++  gives it **instance-scoped** reactive state — two calls to the same
++  component on one page never share one value — referenced exactly
++  like page-level `State(...)`: `Bind(...)`, `on_click=Action.*(...)`,
++  `bind_class=Bind.when(...)`, `bind_value=Bind.model(...)`, and
++  `Show(Predicate.*(...))` all work against it. Worked example (two
++  independent counters, verified to build):
++  `References/cli-and-examples.md`.
++- **Charts and dashboards**: ARKlight has no live charting library and
++  never will — it's a permanent non-goal, not a current gap. Two real
++  patterns cover "data visualization" requests:
++  pre-rendered-image (matplotlib or similar, offline, embedded with
++  `Picture`/`Image`) for actual charts, and the native `Meter`/
++  `Progress` components for KPI/gauge-style numbers. Full pattern,
++  with a real multi-chart dashboard example:
++  `References/alpha-vs-main-and-data-viz.md`.
++- **Genuinely new client-side JS**: `site.register_script_extension(cls)`
++  with a `ScriptExtension` subclass whose `script` attribute is a
++  literal `<script>...</script>` string — see the "7 registered
++  experimental APIs" section below before reaching for this.
++- **`arklight search <n>`** prints the authoritative, exact prop/arg
+   contract for any component, behavior, `Action.*`, `Derive.*`,
+   `Predicate.*`, or `PlatformAPI.*` entry — faster and more reliable
+   than recalling it from memory, with typo-tolerant "did you mean"
+@@ -220,8 +244,8 @@ declared on this page."
+ 
+ Full vocabulary table: `References/component-vocabulary.md`. Full CLI
+ flag reference (`build`/`pack`/`unpack`/`search`/`new`/`pwa`/
+-`live-streaming`/`deploy`) and worked multi-page/state examples:
+-`References/cli-and-examples.md`.
++`live-streaming`/`deploy`), `arklight.config.py`, and worked
++multi-page/state/component examples: `References/cli-and-examples.md`.
+ 
+ ## When the closed vocabulary isn't enough: the 7 registered experimental APIs
+ 
+@@ -246,12 +270,14 @@ this list, it isn't a sanctioned escape hatch:
+ `script-extension` is the one you'll hit in practice for continuous
+ pointer tracking, canvas, clipboard access, or any platform capability
+ the closed vocabulary doesn't cover yet (confirmed against real
+-third-party projects: an Excalidraw-style canvas app puts ~45% of its
+-total lines inside `script-extension` blocks). Prefer waiting on a
+-roadmapped upstream feature over reaching for it when the gap looks
+-temporary rather than structural. `Provider` is the thing to reach for
+-if the user wants ARKlight talking to a real backend service — not
+-`script-extension`.
++third-party projects: an Excalidraw-style canvas app,
++`ARKlight-Test-Collections/Sketchboard`, puts ~45% of its total lines
++inside a single `ScriptExtension` subclass for canvas/pointer
++handling — see `References/cli-and-examples.md` for the minimal shape
++of that registration). Prefer waiting on a roadmapped upstream feature
++over reaching for it when the gap looks temporary rather than
++structural. `Provider` is the thing to reach for if the user wants
++ARKlight talking to a real backend service — not `script-extension`.
+ 
+ Outside these 7 (plus what's simply not built yet): no
+ server/database/auth/accounts, no general `fetch`/HTTP primitive, no
+@@ -288,20 +314,32 @@ check in this order:
+ 
+ ## Reference projects
+ 
+-Genuine third-party ARKlight projects, referenced for patterns, not
+-vendored in full beyond the one file kept here:
++Genuine third-party ARKlight projects — cloned and inspected directly,
++referenced for patterns, not vendored in full beyond the files kept
++here:
+ 
+-- `References/Field-notes-site.py` — a clean multi-page `site.py` entry
+-  file (`ARKlight-Test-Collections/Field-Notes`). The clearest real
+-  example of gotcha #3 and of `site.style(...)`/`site.style_selector(...)`
+-  CSS authoring at real-project scale, plus the full `Site(...)`
++- **Field-Notes** (`ARKlight-Test-Collections/Field-Notes`) — a clean
++  multi-page `site.py` entry file, vendored in full at
++  `References/Field-notes-site.py`. The clearest real example of
++  gotcha #3 and of `site.style(...)`/`site.style_selector(...)` CSS
++  authoring at real-project scale, plus the full `Site(...)`
+   layout-override kwargs in actual use.
+ - **Sketchboard** (`ARKlight-Test-Collections/Sketchboard`) — an
+-  Excalidraw clone; ~45% of its lines sit inside `script-extension`
+-  blocks for canvas/pointer handling — the canonical real example of
+-  hitting the closed-vocabulary wall on a drawing app.
+-- **Clipboard-Reader-For-Markdown-Files** — hits the same wall for
+-  clipboard access and text-to-speech, same escape hatch.
++  Excalidraw clone; its 1,300+ line `ScriptExtension` subclass is the
++  canonical real example of hitting the closed-vocabulary wall on a
++  drawing app (canvas, pointer gestures, undo history, `localStorage`
++  persistence — all hand-written JS inside one registered extension,
++  the rest of the site built normally). Registration shape:
++  `References/cli-and-examples.md`.
++- **Data_Viz_With_ARKlight_Alpha_Compiler** (`Rae-ARK/`) — an 11-page
++  comparison site built *in* ARKlight *about* ARKlight; the canonical
++  real example of the chart/dashboard pattern above
++  (matplotlib-PNG-via-`Picture` + `Meter` KPIs) and of the `alpha`
++  branch's `component(state={...})` feature. Full writeup:
++  `References/alpha-vs-main-and-data-viz.md`.
++- **Clipboard-Reader-For-Markdown-Files** — hits the same
++  closed-vocabulary wall for clipboard access and text-to-speech, same
++  escape hatch.
+ - **Notepad-for-Linux** — ARKlight frontend + a real backend, an
+   example of the "ARKlight owns UI, a real backend owns state" split
+   the project's own docs recommend over reaching for `script-extension`
+@@ -315,4 +353,7 @@ but the experimental-feature list, CLI surface, and `Site(...)` kwargs
+ may have changed — re-check `arklight/experimental.py` and
+ `arklight/api.py`'s `Site.__init__` in the installed version's source,
+ or `PROGRESS.md`'s Snapshot table, rather than assuming this file is
+-current.
++current. If the user is specifically on an older **`alpha`** checkout,
++`References/alpha-vs-main-and-data-viz.md` documents how fast that
++branch moves relative to `main` and what to re-check before trusting
++any alpha-only feature claim.

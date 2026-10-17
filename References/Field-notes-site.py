@@ -1,6 +1,8 @@
-"""This is a reference file from https://github.com/ARKlight-Test-Collections/Field-Notes
-Used as one of the reference at the time of writing this, October 2026. Use the search cli
-if appropriate for reference ARKlight itself produces"""
+"""Reference file from github.com/ARKlight-Test-Collections/Field-Notes
+(entry file, site.py). Vendored verbatim for the real multi-file
+route-registration pattern (SKILL.md gotcha #3) and site.style(...)/
+site.style_selector(...) usage at real-project scale. Use `arklight
+search <name>` for anything this file's own version might lag."""
 
 # include <stdlib.ARKlight>
 

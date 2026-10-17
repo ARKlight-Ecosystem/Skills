@@ -1,19 +1,19 @@
 ---
 name: arklight-skill-collections
-description: Build, fix, extend, or debug ARKlight sites (a Python-first static-site compiler, `pip install arklight`, CLI command `arklight`, pinned here to main v0.70.0). Use this whenever the user mentions ARKlight, runs `arklight build`/`arklight new`/`arklight pack`/`arklight deploy`, shares a `site.py` with `Page(...)`/`Site()`/`@site.page(...)`, or asks for a static site, landing page, portfolio, documentation site, or small interactive widget "written in Python" that compiles to plain dependency-free HTML/CSS/JS with no client-side Python runtime. ARKlight's authoring syntax looks like ordinary Python but is statically parsed, not executed — several things that work in normal Python (dynamic route registration, routes declared outside the entry file, bare imports without the preamble) fail silently here. Consult this skill before writing or debugging any ARKlight site rather than guessing from the syntax alone — the gotchas and error messages below are not discoverable from the syntax or the error text alone.
+description: Build, fix, extend, or debug ARKlight sites (a Python-first static-site compiler, `pip install arklight`, CLI command `arklight`, pinned here to main v0.70.0). Use this whenever the user mentions ARKlight, runs `arklight build`/`arklight new`/`arklight pack`/`arklight deploy`, shares a `site.py` with `Page(...)`/`Site()`/`@site.page(...)`, or asks for a static site, landing page, portfolio, documentation site, dashboard, or small interactive widget "written in Python" that compiles to plain dependency-free HTML/CSS/JS with no client-side Python runtime. ARKlight's authoring syntax looks like ordinary Python but is statically parsed, not executed — several things that work in normal Python (dynamic route registration, routes declared outside the entry file, bare imports without the preamble) fail silently here. Consult this skill before writing or debugging any ARKlight site rather than guessing from the syntax alone — the gotchas and error messages below are not discoverable from the syntax or the error text alone.
 ---
 
 # ARKlight Sites
 
 Pinned to **ARKlight main, v0.70.0** (`github.com/ARKlight-Ecosystem/ARKlight`,
-commit `1f536e8`, PyPI `arklight==0.70.0`). Everything in this skill was
-verified hands-on against that checkout — real builds run, real errors
-reproduced, not copied from docs on faith. Android/Desktop packaging
-backends are **not part of `main`** at this version — they exist only
-on the `alpha` branch. If the user is specifically working from alpha
-(`arklight android`, `arklight desktop`), say so explicitly and flag
-that behavior may differ from what's documented here. See "Version
-drift" at the end if the installed version differs.
+commit `1f536e8`, PyPI `arklight==0.70.0`). Everything here was verified
+hands-on against that checkout and against real third-party ARKlight
+projects — real builds run, real errors reproduced, not copied from
+docs on faith. Android/Desktop packaging and a few newer APIs exist
+only on the **`alpha`** branch, which runs ahead of `main` — see
+`References/alpha-vs-main-and-data-viz.md` if the user's project
+needs alpha specifically. See "Version drift" at the end if the
+installed version differs.
 
 ARKlight compiles a restricted, Python-flavored authoring syntax into
 plain static HTML/CSS/JS. The browser never runs Python, and there's
@@ -27,40 +27,42 @@ every gotcha below:
 > (Confirmed directly in `arklight/parser/discover.py`: `ast.parse` on
 > the entry file's source only, before any user code runs.)
 
-## Setup
-
-Check whether `arklight` is already on `PATH` (`arklight --version`)
-before installing anything. If not: `pip install arklight`. Requires
-Python >= 3.10.
-
-**Two separate license gates, and they need two separate answers:**
-
-- **Build-time** (installing from a git checkout): `pip install -e .`
-  stops with a notice unless you pass
-  `--config-settings=yes-i-agree-to-arklight-license=1` or set
-  `ARKLIGHT_ACCEPT_LICENSE=1` in the environment.
-- **Runtime** (the first `arklight <command>` invocation on a
-  machine): prompts interactively for a typed `agree`, or honors the
-  same `ARKLIGHT_ACCEPT_LICENSE=1` for non-interactive/CI/scripted use
-  (acceptance is then cached in `~/.arklight/license-accepted`). If
-  stdin isn't a TTY and the env var isn't set, the command refuses to
-  run rather than hanging on a prompt nothing can answer — this is
-  what you'll hit by default in an automated shell.
-- A plain `pip install arklight` from PyPI (prebuilt wheel) skips the
-  build-time check entirely but still hits the runtime one.
-- Read `LICENSE` (GPLv3 + additional attribution terms) before setting
-  the env var in anything meant to be distributed — the additional
-  terms require an "ARKlight-based"/"Powered by ARKlight" attribution
-  on conveyed copies of the compiler itself and its embedded runtime
-  file, but explicitly do **not** extend to a user's own site source
-  or compiled output beyond that one runtime file.
-
-For scripted/automated use (including this session), just set the
-env var on every invocation:
+## Getting started
 
 ```bash
-ARKLIGHT_ACCEPT_LICENSE=1 arklight build site.py
+arklight --version                              # already installed?
+pip install arklight                            # if not (needs Python >= 3.10)
+ARKLIGHT_ACCEPT_LICENSE=1 arklight build site.py -o ARK --no-open   # build
+ARKLIGHT_ACCEPT_LICENSE=1 arklight pack ARK -o mysite.ark           # optional: single-file bundle
+arklight search Picture                         # look up a component's exact prop contract
 ```
+
+That sequence — install, build, optionally pack, and `search` for
+anything you're unsure of — covers the large majority of sessions.
+`arklight search <name>` is the single highest-leverage command here:
+it prints the compiler's own live schema for any component, behavior,
+`Action.*`, `Derive.*`, `Predicate.*`, or `PlatformAPI.*` entry, with
+typo-tolerant "did you mean" suggestions on a miss — prefer it over
+recalling a prop name from memory.
+
+**License, in one line:** `arklight` refuses to run non-interactively
+(any scripted/CI/this-session context) without
+`ARKLIGHT_ACCEPT_LICENSE=1` set — set it on every invocation here. A
+git-checkout `pip install -e .` has a second, separate build-time gate
+(`--config-settings=yes-i-agree-to-arklight-license=1`, or the same
+env var). Read `LICENSE` (GPLv3 + attribution terms covering the
+compiler and its embedded runtime file, not a user's own site source
+or output) before setting it in anything meant to be distributed.
+
+**Where the docs live:** a plain `pip install arklight` wheel does
+**not** include the `docs/` folder (only the `arklight*` package is
+shipped) — `arklight search --retrieve-doc` only works from a source
+checkout (`git clone` + `pip install -e .`). From a wheel install, use
+the PyPI project page (`pypi.org/project/arklight/`) for the version
+history, or read `docs/` directly on GitHub
+(`github.com/ARKlight-Ecosystem/ARKlight`). `arklight search <name>`
+itself (the schema lookup, not `--retrieve-doc`) works either way —
+it reads the installed package, not the `docs/` tree.
 
 ## The mental model, in one example
 
@@ -78,10 +80,6 @@ def home():
         Button("Increment", on_click=Action.increment("count")),
         title="Demo",
     )
-```
-
-```bash
-ARKLIGHT_ACCEPT_LICENSE=1 arklight build site.py -o ARK --no-open
 ```
 
 Every entry file follows this shape: a leading
@@ -201,7 +199,10 @@ declared on this page."
   `reel_space` — set once at the site level instead of per-instance
   `style={}` overrides. `.switcher` is the classic "row on wide
   viewports, stacked column on narrow ones" layout, purely from
-  container width.
+  container width. `Site(max_width=...)` is a real body-width
+  override at this version — don't hand-roll one via a wrapper `<div>`
+  custom property; a child element can never widen its own parent, so
+  that pattern silently doesn't reach `<body>`.
 - **Click behaviors, zero hand-written JS**: `on_click="toggle"` /
   `"scroll-to"` + `behavior_target="#id"` cover
   accordions/disclosures/smooth-scroll. Validated against this fixed
@@ -212,7 +213,30 @@ declared on this page."
   bites). Display a scalar state value with `Bind("name")` directly as
   a child; `Bind.model(...)` is specifically for two-way input
   binding; `Repeat`/`RepeatItem` is only for list-valued state.
-- **`arklight search <Name>`** prints the authoritative, exact prop/arg
+- **Reusable components with their own local state**: `@component(props={...},
+  default_style={...}, state={...})` registers a render function as a
+  named component (`NavBar(active="home")`, checked against `props=`
+  at expansion time, keyword props only). `state={"open": False}`
+  gives it **instance-scoped** reactive state — two calls to the same
+  component on one page never share one value — referenced exactly
+  like page-level `State(...)`: `Bind(...)`, `on_click=Action.*(...)`,
+  `bind_class=Bind.when(...)`, `bind_value=Bind.model(...)`, and
+  `Show(Predicate.*(...))` all work against it. Worked example (two
+  independent counters, verified to build):
+  `References/cli-and-examples.md`.
+- **Charts and dashboards**: ARKlight has no live charting library and
+  never will — it's a permanent non-goal, not a current gap. Two real
+  patterns cover "data visualization" requests:
+  pre-rendered-image (matplotlib or similar, offline, embedded with
+  `Picture`/`Image`) for actual charts, and the native `Meter`/
+  `Progress` components for KPI/gauge-style numbers. Full pattern,
+  with a real multi-chart dashboard example:
+  `References/alpha-vs-main-and-data-viz.md`.
+- **Genuinely new client-side JS**: `site.register_script_extension(cls)`
+  with a `ScriptExtension` subclass whose `script` attribute is a
+  literal `<script>...</script>` string — see the "7 registered
+  experimental APIs" section below before reaching for this.
+- **`arklight search <n>`** prints the authoritative, exact prop/arg
   contract for any component, behavior, `Action.*`, `Derive.*`,
   `Predicate.*`, or `PlatformAPI.*` entry — faster and more reliable
   than recalling it from memory, with typo-tolerant "did you mean"
@@ -220,8 +244,8 @@ declared on this page."
 
 Full vocabulary table: `References/component-vocabulary.md`. Full CLI
 flag reference (`build`/`pack`/`unpack`/`search`/`new`/`pwa`/
-`live-streaming`/`deploy`) and worked multi-page/state examples:
-`References/cli-and-examples.md`.
+`live-streaming`/`deploy`), `arklight.config.py`, and worked
+multi-page/state/component examples: `References/cli-and-examples.md`.
 
 ## When the closed vocabulary isn't enough: the 7 registered experimental APIs
 
@@ -246,12 +270,14 @@ this list, it isn't a sanctioned escape hatch:
 `script-extension` is the one you'll hit in practice for continuous
 pointer tracking, canvas, clipboard access, or any platform capability
 the closed vocabulary doesn't cover yet (confirmed against real
-third-party projects: an Excalidraw-style canvas app puts ~45% of its
-total lines inside `script-extension` blocks). Prefer waiting on a
-roadmapped upstream feature over reaching for it when the gap looks
-temporary rather than structural. `Provider` is the thing to reach for
-if the user wants ARKlight talking to a real backend service — not
-`script-extension`.
+third-party projects: an Excalidraw-style canvas app,
+`ARKlight-Test-Collections/Sketchboard`, puts ~45% of its total lines
+inside a single `ScriptExtension` subclass for canvas/pointer
+handling — see `References/cli-and-examples.md` for the minimal shape
+of that registration). Prefer waiting on a roadmapped upstream feature
+over reaching for it when the gap looks temporary rather than
+structural. `Provider` is the thing to reach for if the user wants
+ARKlight talking to a real backend service — not `script-extension`.
 
 Outside these 7 (plus what's simply not built yet): no
 server/database/auth/accounts, no general `fetch`/HTTP primitive, no
@@ -288,20 +314,32 @@ check in this order:
 
 ## Reference projects
 
-Genuine third-party ARKlight projects, referenced for patterns, not
-vendored in full beyond the one file kept here:
+Genuine third-party ARKlight projects — cloned and inspected directly,
+referenced for patterns, not vendored in full beyond the files kept
+here:
 
-- `References/Field-notes-site.py` — a clean multi-page `site.py` entry
-  file (`ARKlight-Test-Collections/Field-Notes`). The clearest real
-  example of gotcha #3 and of `site.style(...)`/`site.style_selector(...)`
-  CSS authoring at real-project scale, plus the full `Site(...)`
+- **Field-Notes** (`ARKlight-Test-Collections/Field-Notes`) — a clean
+  multi-page `site.py` entry file, vendored in full at
+  `References/Field-notes-site.py`. The clearest real example of
+  gotcha #3 and of `site.style(...)`/`site.style_selector(...)` CSS
+  authoring at real-project scale, plus the full `Site(...)`
   layout-override kwargs in actual use.
 - **Sketchboard** (`ARKlight-Test-Collections/Sketchboard`) — an
-  Excalidraw clone; ~45% of its lines sit inside `script-extension`
-  blocks for canvas/pointer handling — the canonical real example of
-  hitting the closed-vocabulary wall on a drawing app.
-- **Clipboard-Reader-For-Markdown-Files** — hits the same wall for
-  clipboard access and text-to-speech, same escape hatch.
+  Excalidraw clone; its 1,300+ line `ScriptExtension` subclass is the
+  canonical real example of hitting the closed-vocabulary wall on a
+  drawing app (canvas, pointer gestures, undo history, `localStorage`
+  persistence — all hand-written JS inside one registered extension,
+  the rest of the site built normally). Registration shape:
+  `References/cli-and-examples.md`.
+- **Data_Viz_With_ARKlight_Alpha_Compiler** (`Rae-ARK/`) — an 11-page
+  comparison site built *in* ARKlight *about* ARKlight; the canonical
+  real example of the chart/dashboard pattern above
+  (matplotlib-PNG-via-`Picture` + `Meter` KPIs) and of the `alpha`
+  branch's `component(state={...})` feature. Full writeup:
+  `References/alpha-vs-main-and-data-viz.md`.
+- **Clipboard-Reader-For-Markdown-Files** — hits the same
+  closed-vocabulary wall for clipboard access and text-to-speech, same
+  escape hatch.
 - **Notepad-for-Linux** — ARKlight frontend + a real backend, an
   example of the "ARKlight owns UI, a real backend owns state" split
   the project's own docs recommend over reaching for `script-extension`
@@ -315,4 +353,7 @@ but the experimental-feature list, CLI surface, and `Site(...)` kwargs
 may have changed — re-check `arklight/experimental.py` and
 `arklight/api.py`'s `Site.__init__` in the installed version's source,
 or `PROGRESS.md`'s Snapshot table, rather than assuming this file is
-current.
+current. If the user is specifically on an older **`alpha`** checkout,
+`References/alpha-vs-main-and-data-viz.md` documents how fast that
+branch moves relative to `main` and what to re-check before trusting
+any alpha-only feature claim.

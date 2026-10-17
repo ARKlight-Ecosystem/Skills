@@ -266,3 +266,123 @@ def home():
         title="To-do",
     )
 ```
+
+## Worked example: a component with its own instance-scoped state
+
+Verified against a real multi-instance build
+(`Rae-ARK/Data_Viz_With_ARKlight_Alpha_Compiler`, `pages/playground.py`)
+— two `Counter()` calls on one page, each tracking its own `"count"`
+independently, with no manually-threaded state key:
+
+```python
+# include <stdlib.ARKlight>
+
+site = Site()
+
+@component(
+    props={"label": Prop(default="Live counter"), "start": Prop(default=0)},
+    state={"count": 0, "milestone": 5},
+)
+def Counter(label="Live counter", start=0):
+    return Container(
+        Text(label, class_name="muted"),
+        Heading(Bind("count"), level=2),
+        Button("+", on_click=Action.increment("count")),
+        Button("Reset", on_click=Action.reset("count")),
+        Show(
+            Predicate.gte("count", "milestone"),
+            Text("Milestone reached!", class_name="muted"),
+        ),
+    )
+
+@site.page("/")
+def home():
+    return Page(
+        Heading("Two independent counters"),
+        Counter(label="First"),
+        Counter(label="Second"),    # its own "count" -- clicking this never touches the first
+        title="Playground",
+    )
+```
+
+`props=` are checked at expansion time (unknown/missing props fail the
+build with a clear message, not a Python `TypeError`); `state=` gives
+each call site its own copy, referenced the same way page-level
+`State(...)` is — `Bind(...)`, `on_click=Action.*(...)`,
+`bind_class=Bind.when(...)`, `bind_value=Bind.model(...)`, and
+`Show(Predicate.*(...))` all work against it directly.
+
+## Worked example: registering a real `script-extension` (the Sketchboard shape)
+
+Minimal real shape, from `ARKlight-Test-Collections/Sketchboard`
+(whose actual extension runs to 1,300+ lines of canvas/pointer-gesture
+JS — this is the registration skeleton it uses, not the full file):
+
+```python
+# include <stdlib.ARKlight>
+
+from arklight.backend.script_extension import ScriptExtension
+
+class SketchboardRuntime(ScriptExtension):
+    script = r"""<script>
+(function () {
+    "use strict";
+    function start() {
+        var host = document.getElementById("drawing-host");
+        if (!host || host.dataset.ready) return;
+        host.dataset.ready = "true";
+        // ... canvas setup, pointer event wiring, undo history, etc.
+    }
+    document.addEventListener("DOMContentLoaded", start);
+})();
+</script>"""
+
+site = Site()
+site.register_script_extension(SketchboardRuntime)
+
+@site.page("/")
+def home():
+    return Page(Container(id="drawing-host"), title="Sketchboard")
+```
+
+A `ScriptExtension` subclass's `script` attribute is a literal
+`<script>...</script>` string — no `<template>`/`<style>` sections,
+unlike a Svelte SFC proper. ARKlight doesn't check the JS inside it
+for correctness (no `eval`/`new Function` either, it's just emitted
+verbatim) — this is the registered escape hatch of last resort, not a
+first choice; see `SKILL.md`'s experimental-APIs section before
+reaching for it.
+
+## `arklight.config.py`: project-level overrides
+
+Optional, and every site works fine without one. Must be named exactly
+`arklight.config.py` and sit next to the entry file — not searched for
+in parent directories; an unrecognized section/key prints a
+"did you mean" warning rather than being silently ignored or rejected
+outright. Confirmed real shape (from a real project's checked-in,
+all-defaults-commented-out file):
+
+```python
+# include <stdlib.ARKlight>
+
+CONFIG = {
+    # Only read by `arklight live-streaming --subscribe`.
+    # "live_streaming": {"host": "127.0.0.1", "port": 8347, "poll_interval": 0.5},
+
+    # Force the Content-Security-Policy on/off for every build from this
+    # project, regardless of any individual Site(strict_csp=...).
+    # None (the default) means "no override".
+    # "csp": {"strict_csp": None},
+
+    # Default build narration when no --verbose/--narrate flag is passed:
+    # "plain", "verbose", or "narrate".
+    # "rei": {"default_mode": "plain"},
+
+    # Silence experimental-API warnings once you've made peace with one.
+    # "experimental": {"heavy_reliance_nudge": True, "devtools_console_reminder": True},
+
+    # The narrow, genuinely-legitimate escape from the build halting on an
+    # unresolved link/asset -- see SKILL.md's debugging checklist.
+    # "overdrive": True,
+}
+```
