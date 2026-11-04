@@ -1,0 +1,13 @@
+{
+  "name": "arklight-skills",
+  "description": "ARKlight authoring skill (arklight-sites) plus a companion ecosystem/examples index (arklight-examples) with live links to first-party ARKlight projects.",
+  "version": "1.1.0",
+  "author": {
+    "name": "Rae-ARK",
+    "url": "https://github.com/ARKlight-Ecosystem"
+  },
+  "homepage": "https://github.com/ARKlight-Ecosystem/Skills",
+  "repository": "https://github.com/ARKlight-Ecosystem/Skills",
+  "license": "MIT",
+  "keywords": ["arklight", "python", "static-site", "compiler", "skill"]
+}

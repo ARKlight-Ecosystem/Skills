@@ -1,19 +1,24 @@
 ---
-name: arklight-skill-collections
-description: Build, fix, extend, or debug ARKlight sites (a Python-first static-site compiler, `pip install arklight`, CLI command `arklight`, pinned here to main v0.70.0). Use this whenever the user mentions ARKlight, runs `arklight build`/`arklight new`/`arklight pack`/`arklight deploy`, shares a `site.py` with `Page(...)`/`Site()`/`@site.page(...)`, or asks for a static site, landing page, portfolio, documentation site, dashboard, or small interactive widget "written in Python" that compiles to plain dependency-free HTML/CSS/JS with no client-side Python runtime.  Consult this skill before writing or debugging any ARKlight site rather than guessing from the syntax alone — the gotchas and error messages below are not discoverable from the syntax or the error text alone.
+name: arklight-sites
+description: Build, fix, extend, or debug ARKlight sites (a Python-first static-site compiler, `pip install arklight`, CLI command `arklight`, pinned here to main v0.70.1). Use this whenever the user mentions ARKlight, runs `arklight build`/`arklight new`/`arklight pack`/`arklight deploy`, shares a `site.py` with `Page(...)`/`Site()`/`@site.page(...)`, or asks for a static site, landing page, portfolio, documentation site, dashboard, or small interactive widget "written in Python" that compiles to plain dependency-free HTML/CSS/JS with no client-side Python runtime. Consult this skill before writing or debugging any ARKlight site rather than guessing from the syntax alone — the gotchas and error messages below are not discoverable from the syntax or the error text alone. For "what does a real ARKlight project look like" / "find me an example of X", see the companion `arklight-examples` skill instead.
 ---
 
 # ARKlight Sites
 
-Pinned to **ARKlight main, v0.70.0** (`github.com/ARKlight-Ecosystem/ARKlight`,
-commit `1f536e8`, PyPI `arklight==0.70.0`). Everything here was verified
-hands-on against that checkout and against real third-party ARKlight
-projects — real builds run, real errors reproduced, not copied from
-docs on faith. Android/Desktop packaging and a few newer APIs exist
-only on the **`alpha`** branch, which runs ahead of `main` — see
-`References/alpha-vs-main-and-data-viz.md` if the user's project
-needs alpha specifically. See "Version drift" at the end if the
-installed version differs.
+Pinned to **ARKlight main, v0.70.1** (`github.com/ARKlight-Ecosystem/ARKlight`,
+PyPI `arklight==0.70.1` — one patch ahead of the `v0.70.0` this skill
+was originally verified against; re-checked hands-on at `0.70.1` and
+nothing below changed). Everything here was verified hands-on against
+a real install and real third-party ARKlight projects — real builds
+run, real errors reproduced, not copied from docs on faith. The
+official `ARKlight` repo's own `v0.070.1` release notes now point
+AI-assisted developers at this Skills repo directly, so treat this as
+the canonical place to update, not a side project. Android/Desktop
+packaging and a few newer APIs exist only on the **`alpha`** branch,
+which runs ahead of `main` — see the `arklight-examples` skill's
+`References/alpha-vs-main-and-data-viz.md` if the user's project needs
+alpha specifically. See "Version drift" at the end if the installed
+version differs.
 
 ARKlight compiles a restricted, Python-flavored authoring syntax into
 plain static HTML/CSS/JS. The browser never runs Python, and there's
@@ -314,46 +319,33 @@ check in this order:
 
 ## Reference projects
 
-Genuine third-party ARKlight projects — cloned and inspected directly,
-referenced for patterns, not vendored in full beyond the files kept
-here:
-
-- **Field-Notes** (`ARKlight-Test-Collections/Field-Notes`) — a clean
-  multi-page `site.py` entry file, vendored in full at
-  `References/Field-notes-site.py`. The clearest real example of
-  gotcha #3 and of `site.style(...)`/`site.style_selector(...)` CSS
-  authoring at real-project scale, plus the full `Site(...)`
-  layout-override kwargs in actual use.
-- **Sketchboard** (`ARKlight-Test-Collections/Sketchboard`) — an
-  Excalidraw clone; its 1,300+ line `ScriptExtension` subclass is the
-  canonical real example of hitting the closed-vocabulary wall on a
-  drawing app (canvas, pointer gestures, undo history, `localStorage`
-  persistence — all hand-written JS inside one registered extension,
-  the rest of the site built normally). Registration shape:
-  `References/cli-and-examples.md`.
-- **Data_Viz_With_ARKlight_Alpha_Compiler** (`Rae-ARK/`) — an 11-page
-  comparison site built *in* ARKlight *about* ARKlight; the canonical
-  real example of the chart/dashboard pattern above
-  (matplotlib-PNG-via-`Picture` + `Meter` KPIs) and of the `alpha`
-  branch's `component(state={...})` feature. Full writeup:
-  `References/alpha-vs-main-and-data-viz.md`.
-- **Clipboard-Reader-For-Markdown-Files** — hits the same
-  closed-vocabulary wall for clipboard access and text-to-speech, same
-  escape hatch.
-- **Notepad-for-Linux** — ARKlight frontend + a real backend, an
-  example of the "ARKlight owns UI, a real backend owns state" split
-  the project's own docs recommend over reaching for `script-extension`
-  to fake a backend.
+For real, cloned-and-inspected third-party ARKlight projects (which
+one to look at for a given pattern, their GitHub links, and — this
+matters — how out of date each one's pinned ARKlight version is), see
+the companion **`arklight-examples`** skill rather than duplicating
+that index here. Short version: `Field-Notes` and `Sketchboard`
+(`ARKlight-Test-Collections` org) are current enough to trust as-is;
+the rest range from "mostly fine" to "30+ releases behind and
+documenting workarounds for bugs that are long since fixed upstream"
+— don't copy a pattern from an older example without checking it
+against the CLI/compiler behavior you actually have installed.
 
 ## Version drift
 
-If `arklight --version` doesn't report `0.70.0`, the four gotchas
+If `arklight --version` doesn't report `0.70.1`, the four gotchas
 above likely still hold (they're structural to the AST-only design),
 but the experimental-feature list, CLI surface, and `Site(...)` kwargs
 may have changed — re-check `arklight/experimental.py` and
 `arklight/api.py`'s `Site.__init__` in the installed version's source,
 or `PROGRESS.md`'s Snapshot table, rather than assuming this file is
 current. If the user is specifically on an older **`alpha`** checkout,
+the `arklight-examples` skill's
 `References/alpha-vs-main-and-data-viz.md` documents how fast that
 branch moves relative to `main` and what to re-check before trusting
-any alpha-only feature claim.
+any alpha-only feature claim. This isn't hypothetical: every example
+project this skill set has inspected pins a different version, and the
+oldest ones (~`v0.037`–`v0.054`) still document manual workarounds
+(asset copying, "no custom CSS classes," "no asset-existence check")
+for gaps the compiler closed version ago — check the installed
+version's own source before trusting an example's claim about what
+ARKlight can't do.

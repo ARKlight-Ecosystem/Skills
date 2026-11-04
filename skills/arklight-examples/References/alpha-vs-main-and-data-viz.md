@@ -1,10 +1,19 @@
 # The `alpha` branch, and building charts/dashboards in ARKlight
 
-Both topics come from the same real project,
+Both topics were originally sourced from one project cited as
 `Rae-ARK/Data_Viz_With_ARKlight_Alpha_Compiler` — an 11-page
 "ARKlight vs. traditional frontend frameworks" comparison site, built
-*in* ARKlight, shipped as a sealed `.ark` bundle. Cloned and read
-directly, not summarized from its own claims alone.
+*in* ARKlight, shipped as a sealed `.ark` bundle.
+
+**Caveat, added on re-check:** that specific repo could not be
+re-confirmed to currently exist (see `arklight-examples/SKILL.md`'s
+"Unverified citation" note) — it may have been renamed, removed, or
+the original citation may be mistaken. Don't repeat it as a live link
+to point a user at until it's re-verified. The content below is kept
+because the *methodology* it demonstrates (guard on feature presence,
+not on a remembered version number) is independently sound and
+checkable against ARKlight's own source regardless of that project's
+status.
 
 ## `alpha` moves faster than `main` — don't trust a stale feature table
 
