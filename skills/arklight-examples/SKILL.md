@@ -56,24 +56,27 @@ as well as ARKlight ones. Confirmed to exist via GitHub's own
 `arklight` topic listing (`github.com/topics/arklight`):
 
 - [`Rae-ARK/ARKlight`](https://github.com/Rae-ARK/ARKlight) — appears to mirror/precede the `ARKlight-Ecosystem/ARKlight` org repo (same project, personal-account copy). Prefer the `ARKlight-Ecosystem` org repo as canonical unless specifically told to check this one.
-- [`Rae-ARK/Product-Showcase`](https://github.com/Rae-ARK/Product-Showcase) — **a distinct repo from `ARKlight-Test-Collections/Product-Showcase`**, same short description ("uses ARKlight pkg... Refer my ARKlight repo for more details"). Not yet diffed against the Test-Collections copy — don't assume they're identical.
+- `Rae-ARK/Product-Showcase` — **not a separate project.** Per the maintainer: this is the same repository as `ARKlight-Test-Collections/Product-Showcase` above, transferred from the personal account to the org at a later date. GitHub repo transfers leave the old owner/name working as a redirect, which is why it still shows up under `Rae-ARK` in topic search — same commit history, same code, nothing to diff. Use the `ARKlight-Test-Collections/Product-Showcase` link and the version caveat already given for it above; don't cite this one as a second, independent example.
 - `Rae-ARK/ARKlight-Experiemental-Env` — design-doc-only experiment testing whether ARKlight's `alpha` IR can be lowered to a native (non-WebView) Android target. No implementation code yet as of last check.
 - `Rae-ARK/C_ARKlight` — a separate C implementation of the compiler core (`carklight`), under its own license (GPLv3 + a linking exception) — not something to install when a user just wants `pip install arklight`.
 - `Rae-ARK/ARKlight-Teachers-Kit` — "Noah," a teaching-assistant app built on top of ARKlight, Apache-2.0.
 
-**Unverified citation to flag, not repeat as fact:** an earlier version
-of this skill set cited `Rae-ARK/Data_Viz_With_ARKlight_Alpha_Compiler`
-— an 11-page ARKlight-vs-frontend-frameworks comparison site, shipped
-as a sealed `.ark` bundle, used as the canonical chart/dashboard and
-`alpha`-branch example. Re-checked this session via GitHub's topic
-search and could not find a repo under that name currently. It may
-have been renamed, made private, deleted, or the citation may simply
-be wrong. The methodological lesson it was cited for — **guard on
+**Repo moved, not missing:** an earlier version of this skill set
+cited `Rae-ARK/Data_Viz_With_ARKlight_Alpha_Compiler` — an 11-page
+ARKlight-vs-frontend-frameworks comparison site, shipped as a sealed
+`.ark` bundle, used as the canonical chart/dashboard and
+`alpha`-branch example. It couldn't be found under that name/owner via
+GitHub's topic search, which first read as "possibly deleted or
+mis-cited." Per the maintainer: it was transferred to the
+`ARKlight-Ecosystem` org, not removed — this session wasn't able to
+independently pin its exact current repo name/URL under that org
+(search results for the org's repo listing were inconsistent), so
+rather than guess a URL, check `github.com/ARKlight-Ecosystem`'s own
+repository listing directly for the current name before citing a link
+to a user. The methodological lesson it was cited for — **guard on
 feature presence (inspect what the installed ARKlight actually
-exposes), never on a remembered version number** — is sound on its own
-and is kept in `References/alpha-vs-main-and-data-viz.md`, but don't
-tell a user "see project X" for it until that repo is re-confirmed to
-exist.
+exposes), never on a remembered version number** — is sound
+regardless, and is kept in `References/alpha-vs-main-and-data-viz.md`.
 
 ## How to use an example safely
 
@@ -88,7 +91,10 @@ exist.
    check X") is a claim about the version *that project* was built
    against, not about the version currently installed — verify with
    `arklight --version` and, if needed, a real build, same as this
-   skill set's own methodology throughout.
+   skill set's own methodology throughout. That verification stays at
+   the CLI/build level — it is not license to go read
+   `arklight/ir/*.py` mid-task; see `arklight-sites/SKILL.md`'s
+   "Treat ARKlight as a black box" section, which applies here too.
 
 Full `alpha`-branch-vs-`main` methodology and the chart/dashboard
 pattern (matplotlib-PNG-via-`Picture` + `Meter` KPIs for

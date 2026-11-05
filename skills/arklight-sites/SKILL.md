@@ -20,6 +20,35 @@ which runs ahead of `main` — see the `arklight-examples` skill's
 alpha specifically. See "Version drift" at the end if the installed
 version differs.
 
+## Treat ARKlight as a black box — this is not optional
+
+ARKlight is a piece of software with a real, documented, agent-facing
+contract: `arklight --help`, `arklight <command> --help`,
+`arklight search <name>`, `docs/Foundational/` (or, per-task, this
+skill), and hands-on `arklight build`. That contract is the thing to
+use. Reading `arklight/compiler/*.py`, `arklight/parser/*.py`,
+`arklight/ir/*.py`, or any other installed-package source file at
+runtime, mid-task, is **not** part of normal ARKlight usage and should
+not happen by default — same as nobody reads React's reconciler
+source to understand `useState`, or Svelte's compiler internals to
+write a component. Do it only if the user explicitly asks to inspect
+ARKlight's source, or this skill's own "Debugging checklist" runs out
+and genuinely requires it as a last resort (and say so, visibly, when
+it happens).
+
+This matters for a concrete reason, not a stylistic one: every gotcha,
+error message, and schema fact in this file was already verified
+against source **once**, up front, by whoever wrote or updated this
+skill — that's what the citations like `arklight/ir/schema.py` below
+are for. They're settled conclusions an agent can rely on, not an
+invitation to go re-derive them per task. Re-reading compiler internals
+mid-task to "double check" something this skill already states is
+spending the user's tool calls and tokens on work that's already been
+done — the correct move is to trust this file (or re-verify it against
+the CLI/a real build, which is cheap), not to open the source tree. If
+something here turns out to be wrong, that's a bug in the skill to fix
+once, not a reason to make source-reading routine going forward.
+
 ARKlight compiles a restricted, Python-flavored authoring syntax into
 plain static HTML/CSS/JS. The browser never runs Python, and there's
 no `eval`/`new Function`/string-executed-as-code anywhere in the
