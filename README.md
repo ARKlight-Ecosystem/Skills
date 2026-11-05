@@ -24,7 +24,7 @@ Everything doesn't fit cleanly in a single `SKILL.md`, so this repo
 ships two, each with its own trigger condition:
 
 - **`skills/arklight-sites/`** — the authoring/debugging skill: setup
-  and the two license gates, the mental model, the four gotchas that
+  and the two license gates, the mental model, the five gotchas that
   actually bite (confirmed against `arklight/parser/discover.py` and
   real builds, not guessed), styling/responsive/reactivity authoring
   patterns, all 7 registered experimental APIs, and a debugging

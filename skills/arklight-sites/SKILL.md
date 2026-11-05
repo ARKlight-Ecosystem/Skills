@@ -181,6 +181,28 @@ that tree is simply never declared, and any `Bind(...)`/`bind_value=`
 referencing it fails validation with "references state that isn't
 declared on this page."
 
+### 5. Over 30 components accept text-only children — nesting a component inside one fails validation
+
+```python
+# Wrong -- Code is a component, not text, and Heading is text-only:
+Heading(Code("get_user()"))   # "Item can only contain text" — same
+                               # rule, raised under whichever text-only
+                               # parent you actually used
+
+# Right -- keep text-only components to literal strings/Bind(...):
+Heading("get_user()")
+```
+
+Confirmed directly against `arklight/ir/schema.py`'s `text_only_children=True`
+flag: it's not just `Item` (the one case the official docs site's
+gotchas page names) — `Heading`, `Text`, `Button`, `Link`, `Span`,
+`Strong`, `Em`, `Code`, `Cite`, `Label`, `Caption`, `Summary`,
+`FigCaption`, and 20+ others all carry the same restriction. Any of
+them raises the identical validation error when given a non-text
+child, not only `Item` — check `arklight search <name>` if unsure
+whether a specific component is text-only before nesting something
+inside it.
+
 ## Authoring patterns
 
 - **Styling**: `class_name=`/`style={...}` on any component;
@@ -312,6 +334,7 @@ check in this order:
 | `name 'X' is not defined` for a component name | Missing `# include <stdlib.ARKlight>` (gotcha #1) |
 | `No pages registered on 'site'` | `site.page(...)` called instead of used as `@site.page(...)` (gotcha #2), or the decorator lives in an imported module (gotcha #3) |
 | `"<state> isn't declared on this page"` | `State(...)` called as a bare statement instead of a `Page(...)` child (gotcha #4) |
+| `"Item can only contain text"` (or the same message naming another component) | A component nested inside one of the 30+ text-only components — `Heading`, `Text`, `Button`, `Link`, `Span`, `Code`, `Strong`, etc., not only `Item` (gotcha #5) |
 | `PreambleCollisionError` | Two `# include`s bind the same name differently, or your own code rebinds a name the preamble already bound |
 | `BracketIndentationError` | A continuation line inside `(`/`[`/`{` isn't indented further than its opener, or nesting exceeds 8 levels |
 | Component called with positional args, `ComponentError` | A `@component(...)`-registered component takes **keyword props only** — `Stat(label="x")`, never `Stat("x")` |
@@ -332,7 +355,7 @@ against the CLI/compiler behavior you actually have installed.
 
 ## Version drift
 
-If `arklight --version` doesn't report `0.70.1`, the four gotchas
+If `arklight --version` doesn't report `0.70.1`, the five gotchas
 above likely still hold (they're structural to the AST-only design),
 but the experimental-feature list, CLI surface, and `Site(...)` kwargs
 may have changed — re-check `arklight/experimental.py` and
