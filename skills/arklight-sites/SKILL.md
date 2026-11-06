@@ -259,10 +259,29 @@ inside it.
   override at this version — don't hand-roll one via a wrapper `<div>`
   custom property; a child element can never widen its own parent, so
   that pattern silently doesn't reach `<body>`.
-- **Click behaviors, zero hand-written JS**: `on_click="toggle"` /
-  `"scroll-to"` + `behavior_target="#id"` cover
-  accordions/disclosures/smooth-scroll. Validated against this fixed
-  vocabulary at build time.
+- **Click behaviors, zero hand-written JS**: `on_click=...` +
+  `behavior_target="#id"` is a closed set of **5** built-ins, not just
+  the two usually mentioned — confirmed directly against
+  `arklight/backend/js/behaviors/`:
+  - `"toggle"` / `"scroll-to"` — accordions/disclosures/smooth-scroll.
+  - `"copy"` — copies the target's text (or an `Input`/`Textarea`
+    value) to the clipboard via `navigator.clipboard.writeText`, with
+    a built-in "Copied!" label flash and a graceful fallback message
+    if the Clipboard API isn't available.
+  - `"paste"` — the read-side mirror of `copy`
+    (`navigator.clipboard.readText()`); writing into an
+    `Input`/`Textarea` also dispatches a real `input` event, so an
+    element with `bind_value=Bind.model(...)` picks the pasted text
+    up into `State(...)` automatically, exactly as if it had been
+    typed.
+  - `"dismiss"` — adds a class (default `hidden`, overridable via
+    `data-ark-toggle-class` / the component's own dismiss-class prop)
+    to every element matching `behavior_target`, for
+    closeable banners/toasts/alerts with no state variable needed.
+
+  All 5 are validated against this fixed vocabulary at build time;
+  `arklight search copy` (etc.) prints the authoritative prop/arg
+  contract for any one of them.
 - **Reactive state**: `State`, `Computed`/`Derive.*`, `Watch`,
   `Show`/`Predicate.*`, `Repeat`/`RepeatItem`, `Action.*` — all a
   closed, described vocabulary (see gotcha #4 for the one rule that
