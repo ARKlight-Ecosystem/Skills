@@ -47,36 +47,20 @@ language badge, before assuming a repo isn't relevant.
 | [`Notepad-for-Linux`](https://github.com/ARKlight-Test-Collections/Notepad-for-Linux) | Linux notepad app, ARKlight frontend + Flask backend | No version markers found | Architecture-level reference: "ARKlight owns UI, a real backend owns state" — the pattern to recommend over faking a backend with `script-extension` |
 | [`Petit-Four`](https://github.com/ARKlight-Test-Collections/Petit-Four) | Video-sharing app, Kotlin + Flask backend + `src/ARKlight-Frontend/` | No version markers found | Another frontend/backend split example; not yet deeply inspected — check before citing specifics |
 
-## Maintainer's personal repos: `Rae-ARK` account
+## `Rae-ARK` personal account: not citable examples
 
-Separate from the `ARKlight-Ecosystem` org (the compiler itself) and
-`ARKlight-Test-Collections` (the shared example org) — these are the
-maintainer's own account, and include projects unrelated to ARKlight
-as well as ARKlight ones. Confirmed to exist via GitHub's own
-`arklight` topic listing (`github.com/topics/arklight`):
+Not ready for prime time — skip for reference/examples. `Rae-ARK/ARKlight`
+is a 2-commit stub (README only, no package code); treat
+`ARKlight-Ecosystem/ARKlight` as the only canonical compiler repo.
+`Rae-ARK/Product-Showcase` is the same repo as
+`ARKlight-Test-Collections/Product-Showcase` under a transfer redirect —
+use that link, not this one. The rest
+(`ARKlight-Experiemental-Env`, `C_ARKlight`, `ARKlight-Teachers-Kit`)
+are unrelated side projects or design-doc-only, not build patterns.
 
-- [`Rae-ARK/ARKlight`](https://github.com/Rae-ARK/ARKlight) — appears to mirror/precede the `ARKlight-Ecosystem/ARKlight` org repo (same project, personal-account copy). Prefer the `ARKlight-Ecosystem` org repo as canonical unless specifically told to check this one.
-- `Rae-ARK/Product-Showcase` — **not a separate project.** Per the maintainer: this is the same repository as `ARKlight-Test-Collections/Product-Showcase` above, transferred from the personal account to the org at a later date. GitHub repo transfers leave the old owner/name working as a redirect, which is why it still shows up under `Rae-ARK` in topic search — same commit history, same code, nothing to diff. Use the `ARKlight-Test-Collections/Product-Showcase` link and the version caveat already given for it above; don't cite this one as a second, independent example.
-- `Rae-ARK/ARKlight-Experiemental-Env` — design-doc-only experiment testing whether ARKlight's `alpha` IR can be lowered to a native (non-WebView) Android target. No implementation code yet as of last check.
-- `Rae-ARK/C_ARKlight` — a separate C implementation of the compiler core (`carklight`), under its own license (GPLv3 + a linking exception) — not something to install when a user just wants `pip install arklight`.
-- `Rae-ARK/ARKlight-Teachers-Kit` — "Noah," a teaching-assistant app built on top of ARKlight, Apache-2.0.
-
-**Repo moved, not missing:** an earlier version of this skill set
-cited `Rae-ARK/Data_Viz_With_ARKlight_Alpha_Compiler` — an 11-page
-ARKlight-vs-frontend-frameworks comparison site, shipped as a sealed
-`.ark` bundle, used as the canonical chart/dashboard and
-`alpha`-branch example. It couldn't be found under that name/owner via
-GitHub's topic search, which first read as "possibly deleted or
-mis-cited." Per the maintainer: it was transferred to the
-`ARKlight-Ecosystem` org, not removed — this session wasn't able to
-independently pin its exact current repo name/URL under that org
-(search results for the org's repo listing were inconsistent), so
-rather than guess a URL, check `github.com/ARKlight-Ecosystem`'s own
-repository listing directly for the current name before citing a link
-to a user. The methodological lesson it was cited for — **guard on
-feature presence (inspect what the installed ARKlight actually
-exposes), never on a remembered version number** — is sound
-regardless, and is kept in `References/alpha-vs-main-and-data-viz.md`.
+Chart/dashboard and `alpha`-branch example:
+[`ARKlight-Ecosystem/Data_Viz_With_ARKlight_Alpha_Compiler`](https://github.com/ARKlight-Ecosystem/Data_Viz_With_ARKlight_Alpha_Compiler)
+(confirmed live). Full pattern in `References/alpha-vs-main-and-data-viz.md`.
 
 ## How to use an example safely
 
