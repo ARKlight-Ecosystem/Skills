@@ -99,6 +99,21 @@ skill creation enabled.
 
 ## License
 
-The Skill and the repo itself is MIT Licence.
+The Skill and the repo itself is MIT Licence. A copy of `License` now
+also lives inside each `skills/*/` folder, so a per-skill `cp -r`
+(the "Manual" install above) keeps the license attached instead of
+only having it at the repo root.
 
 Plz, Check the [license file](https://github.com/ARKlight-Ecosystem/Skills/blob/main/License) For more information.
+
+Separately: ARKlight itself (the compiler this skill teaches, not
+this skill repo) is GPLv3 and gates non-interactive use behind an
+explicit accept step — see "License, in one line" in
+`skills/arklight-sites/SKILL.md`. Neither part of that is unusual —
+GPLv3 is a standard, well-understood copyleft license, and an explicit
+acceptance gate before a tool runs non-interactively is a common,
+reasonable pattern. It's worth calling out mainly because it's
+implemented thoughtfully here (clear env-var opt-in, a separate
+build-time gate, no silent bypass) compared to tools that bury
+licensing friction in ways that are harder to discover or automate
+around.
