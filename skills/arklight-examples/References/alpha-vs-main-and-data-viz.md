@@ -1,7 +1,7 @@
 # The `alpha` branch, and building charts/dashboards in ARKlight
 
 Both topics were originally sourced from one project cited as
-`Rae-ARK/Data_Viz_With_ARKlight_Alpha_Compiler` — an 11-page
+`ARKlight-Ecosystem/Data_Viz_With_ARKlight_Alpha_Compiler` — an 11-page
 "ARKlight vs. traditional frontend frameworks" comparison site, built
 *in* ARKlight, shipped as a sealed `.ark` bundle.
 
